@@ -256,9 +256,16 @@ public class UserController {
 
     @PostMapping(value = "/admin/register")
     public String adminProcessCreationForm(@Valid User user, BindingResult result) {
-        if (result.hasErrors()) {
-            logger.info("has errors");
-            return VIEWS_ADMIN_REGISTER_FORM;
+        if (userService.findUser(user.getUsername()).isPresent()) {
+            logger.info("username already taken");
+            result.rejectValue("username", "duplicate", "username already taken");
+            return VIEWS_OWNER_CREATE_FORM;
+        } else if (userService.checkIfUserEmailAlreadyExists(user.getEmail())) {
+            logger.info("email already in use");
+            result.rejectValue("email", "emailAlreadyExists", "email already exists. Please choose another one");
+            return VIEWS_OWNER_CREATE_FORM;
+        } else if (result.hasErrors()) {
+            return VIEWS_OWNER_CREATE_FORM;
         } else {
             // creating user
             logger.info("creating user " + user.getUsername());
